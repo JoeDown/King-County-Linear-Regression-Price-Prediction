@@ -181,3 +181,70 @@ def log_transform_columns(df, columns, replace_only_when_improved=True, verbose=
 # Adjusted Rsquared
 
 # Results visualization
+
+
+def location_value_map(longitude, lattidude, price, precision):
+
+    #will use nested loops to move through each house location and find the values of nearby homes according to the precision
+    #precision is the percentage of homes to consider as "nearby"
+    print('the lattitude is length: '+str(len(lattidude)))
+    print('the longitude is length: '+str(len(longitude)))
+    
+    #initialize an empty list to fill with location values, the mean price of nearby homes
+    location_value_list = [0]*len(longitude)
+        
+    #loop through all the longitude/lattitude pairings
+    for house in range(len(longitude)):
+        price_holding_list = [0]*int(len(longitude)*(precision/100))
+        distance_holding_list=[0]*len(longitude)
+        sorted_distance_list=[]
+        closest_houses_list=[]
+        inner_price_holding_list= [0]*int(len(longitude))
+        for nearby_house in range(len(longitude)):
+
+            #initialize holding lists and variable
+            
+            distance_hold = 0
+            #calculate the distance using distance formula between selected house
+            #and all the other potentially nearby houses in the set of long/lat
+            distance_hold = np.sqrt((lattidude[nearby_house] - lattidude[house]) ** 2 
+                + (longitude[nearby_house] - longitude[house]) ** 2)
+            distance_holding_list[nearby_house] = distance_hold
+            inner_price_holding_list[nearby_house] = price[nearby_house]
+        #for each house now make a sorted value ranking list of the nearby houses
+        #according to the precision percentage
+        zipped_distance_price_list = zip(distance_holding_list, inner_price_holding_list)
+
+        sorted_distance_list = sorted(zipped_distance_price_list, reverse=True, key=lambda x: x[1])
+        stop_index = int(len(sorted_distance_list)*precision/100)
+
+
+
+        reduced_distance_list = sorted_distance_list[:stop_index]
+      
+
+        #for each house, populate a list with the prices of the reduced list of nearby homes
+        for i in range(len(reduced_distance_list)):
+            price_holding_list[i]= reduced_distance_list[1]
+
+            # print('The price holding list for house number: ')
+            # print(str(house))
+            # print(' is; ')
+            # print(price_holding_list)
+            
+        price_holding_array=np.array(price_holding_list)
+        location_value_list[house]= np.mean(price_holding_array)
+
+    #take the average of those prices and insert into the location_value_list
+    #price_holding_array=np.array(price_holding_list)
+    #location_value_list[house]= np.mean(price_holding_array)
+
+
+    return location_value_list
+
+
+longitude=[3, 7, 9, 5, 3, 8, 1,7]
+lattitude=[5, 9, 1, 3, 4, 8, 1, 3]
+price=[100, 200, 300, 700, 200, 550, 850, 950]
+
+location_value_map(longitude,lattitude, price, 50)
