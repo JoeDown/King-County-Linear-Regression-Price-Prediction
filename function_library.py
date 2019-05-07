@@ -531,3 +531,52 @@ def add_cluster_label_feature(df, n_clusters=10, fit_df=None, drop_original_colu
     if drop_original_column:
         df.drop(labels=['cluster'], inplace=True, axis=1)
     return df
+
+def fill_na_with_zero(df, column):
+    updated_df=df
+    updated_df[column]= df[column].fillna(0)
+    return updated_df
+
+def fill_na_with_median(df, column):
+    updated_df=df
+    updated_df[column]=df[column].fillna(df[column].median())
+    return updated_df
+
+def convert_float_to_datetime(df, column):
+    updated_df = df
+    updated_df[column] = df[column].astype(int)
+    holding_list_for_series = [0]*len(df)
+    holding_string_for_date = '-01-01'
+
+    for index, house in  enumerate(updated_df.column):
+        holding_string_for_year = ''
+        holding_string_together = ''
+        if update_df[column][index] != 0:
+            holding_string_for_year = str(updated_df[column][index])
+            holding_string_together = holding_string_for_year + holding_string_for_date
+            #print(df.column[index].join(' '))
+            holding_list_for_series[index] = holding_string_together
+        else: 
+            holding_string_for_year = str(updatedf.yr_built[index])
+            holding_string_together = holding_string_for_year + holding_string_for_date
+            #print(df.column[index].join(' '))
+            holding_list_for_series[index] = holding_string_together
+    
+    updated_df = df
+    updated_df[column] = holding_list_for_series
+    return updated_df
+
+def date_to_datetime(df, column):
+    updated_df = df
+    updated_df[column] =  pd.to_datetime(df[column]) #, format='%d%b%Y:%H:%M:%S.%f')
+    return df
+
+def time_since_rennovated_added_in_days(df, date, rennovated):
+    difference_list = len(date)
+    for i, date in enumerate(date):
+        difference_list[i] = date - rennovated[i]
+
+    updated_df = df  
+    updated_df['days_since_rennovated']=difference_list
+    return updated_df
+    
