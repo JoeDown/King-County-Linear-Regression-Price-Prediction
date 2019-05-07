@@ -7,13 +7,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 ### TO DO
-# power transform
-# work on visualizations
-# work on adding new features
-## neighborhood price/score
-# work on feature selection
-## stepwise selection
-# work on presentation
+# work on visualizations H
+# work on adding new features H
+# work on presentation H
+# Build final jupyter notebook H
+# Review project/presentation description H
+
+# check for outliers M
+# build models per zipcode M
+# "neighborhood" clustering based on long-lat M
+# Interpretation of coefficients M
+
+# power transform L
+# neighborhood price/score L
+# work on feature selection L
+# stepwise selection L
 
 # A function to test autoreloading in Jupyter notebooks
 def hello():
@@ -161,7 +169,7 @@ def add_dummy_zipcodes(df):
     return df
 
 # Data transformations 
-def log_transform_column(df, column, replace_only_when_improved=True, verbose=True):
+def log_transform_column(df, column, replace_only_when_improved=True, verbose=True, mute=False):
     from scipy.stats import normaltest
     pretransformation_statistic, _ = normaltest(df[column])
     transformed_column = df[column].apply(lambda x: np.log(x))
@@ -171,17 +179,20 @@ def log_transform_column(df, column, replace_only_when_improved=True, verbose=Tr
         if posttransformation_statistic < pretransformation_statistic:
             df[column] = transformed_column
             transformed = True
-            print(f"Tranformed column: {column}")
+            if not mute:
+                print(f"Tranformed column: {column}")
             if verbose:
                 print(f"Replaced {column} with log({column}) because scipy's normaltest indicated an improvement in normality.")
         else:
-            print(f"Not tranformed column: {column}")
+            if not mute:
+                print(f"Not tranformed column: {column}")
             if verbose:
                 print(f"Did not replace {column} with log({column}) because scipy's normaltest did not indicate an improvement in normality.")
     else:
         df[column] = transformed_column
         transformed = True
-        print(f"Tranformed column: {column}")
+        if not mute:
+            print(f"Tranformed column: {column}")
         if posttransformation_statistic < pretransformation_statistic:
             if verbose:
                 print(f"Replaced {column} with log({column}); scipy's normaltest indicated an improvement in normality.")
@@ -191,48 +202,68 @@ def log_transform_column(df, column, replace_only_when_improved=True, verbose=Tr
     
     return df, transformed
 
-def log_transform_columns(df, columns, replace_only_when_improved=True, verbose=False):
+def log_transform_columns(df, columns, replace_only_when_improved=True, verbose=False, mute=False):
     transformed_columns = []
     for column in columns:
-        df, transformed = log_transform_column(df, column, replace_only_when_improved=replace_only_when_improved, verbose=verbose)
+        df, transformed = log_transform_column(df, column, replace_only_when_improved=replace_only_when_improved, verbose=verbose, mute=mute)
         if transformed:
             transformed_columns.append(column)
     return df, transformed_columns
 
 # Data scaling/normalization
-def scale_and_normalize_columns(df, columns, scaling_functions):
+def scale_and_normalize_columns(df, columns, scaling_functions, fit_df=None):
     for column_i, column in enumerate(columns):
-        df[column] = scaling_functions[column_i](df[column])
+        if not type(fit_df) == None:
+            df[column] = scaling_functions[column_i](df[column], fit_column=fit_df[column])
+        else:
+            df[column] = scaling_functions[column_i](df[column])
     return df
 
-def min_max(column):
+def min_max(column, fit_column=None):
     from sklearn.preprocessing import MinMaxScaler
     column = np.array(column).reshape(-1,1)
     scaler = MinMaxScaler()
-    scaler.fit(column)
+    if not type(fit_column) == None:
+        fit_column = np.array(fit_column).reshape(-1,1)
+        scaler.fit(fit_column)
+    else:
+        scaler.fit(column)
     column = scaler.transform(column)
     return column
 
-def standardization(column):
+def standardization(column, fit_column=None):
     from sklearn.preprocessing import StandardScaler
     column = np.array(column).reshape(-1,1).astype(float)
     scaler = StandardScaler()
-    scaler.fit(column)
+    if not type(fit_column) == None:
+        fit_column = np.array(fit_column).reshape(-1,1).astype(float)
+        scaler.fit(fit_column)
+    else:
+        scaler.fit(column)
     column = scaler.transform(column)
     return column
 
-def mean_normalization(column):
+def mean_normalization(column, fit_column=None):
     column = np.array(column)
-    column_mean = np.mean(column)
-    column_max = np.max(column)
-    column_min = np.min(column)
+    if not type(fit_column) == None:
+        fit_column = np.array(fit_column)
+        column_mean = np.mean(fit_column)
+        column_max = np.max(fit_column)
+        column_min = np.min(fit_column)
+    else:
+        column_mean = np.mean(column)
+        column_max = np.max(column)
+        column_min = np.min(column)
     column = (column-column_mean)/(column_max-column_min)
-    print(np.min(column), np.max(column))
     return column
 
-def unit_vector_transformation(column):
+def unit_vector_transformation(column, fit_column=None):
     column = np.array(column)
-    column /= np.linalg.norm(column)
+    if not type(fit_column) == None:
+        fit_column = np.array(fit_column)
+        column /= np.linalg.norm(fit_column)
+    else:
+        column /= np.linalg.norm(column)
     return column
 
 # Tests on the data
@@ -390,8 +421,8 @@ def location_value_map(longitude, lattidude, price, precision):
 
     #will use nested loops to move through each house location and find the values of nearby homes according to the precision
     #precision is the percentage of homes to consider as "nearby"
-    print('the lattitude is length: '+str(len(lattidude)))
-    print('the longitude is length: '+str(len(longitude)))
+    #print('the lattitude is length: '+str(len(lattidude)))
+    #print('the longitude is length: '+str(len(longitude)))
     
     #initialize an empty list to fill with location values, the mean price of nearby homes
     location_value_list = [0]*len(longitude)
