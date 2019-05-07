@@ -8,20 +8,16 @@ import seaborn as sns
 
 ### TO DO
 # work on visualizations H
-# work on adding new features H
 # work on presentation H
 # Build final jupyter notebook H
 # Review project/presentation description H
-
-# check for outliers M
-# build models per zipcode M
-# "neighborhood" clustering based on long-lat M
-# Interpretation of coefficients M
+# Interpretation of coefficients H
 
 # power transform L
 # neighborhood price/score L
 # work on feature selection L
 # stepwise selection L
+# check for outliers L
 
 # A function to test autoreloading in Jupyter notebooks
 def hello():
@@ -162,10 +158,11 @@ def binarize_column(df, column, new_column_name=None, drop_original_column=True)
         df.drop(labels=[column], inplace=True, axis=1)
     return df
 
-def add_dummy_zipcodes(df):
+def add_dummy_zipcodes(df, drop_zipcode_column=True):
     dummy_zipcodes = pd.get_dummies(df["zipcode"])
     df = pd.concat([df, dummy_zipcodes], axis=1)
-    df.drop(labels=["zipcode"], axis=1, inplace=True)
+    if drop_zipcode_column:
+        df.drop(labels=["zipcode"], axis=1, inplace=True)
     return df
 
 # Data transformations 
@@ -513,4 +510,24 @@ def add_zipcode_ranking_feature(df, zipcode, price):
 
 def add_time_since_renovated_feature(df, date_of_purchase, year_renovated):
     df['time_since_renovated']= df[date_of_purchase]-df[year_renovated]
+    return df
+
+def add_cluster_label_feature(df, n_clusters=10, fit_df=None, drop_original_column=True):
+    from sklearn.cluster import KMeans
+    X = list(zip(df['lat'].tolist(), df['long'].tolist()))
+    if type(fit_df) == None:
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+        labels = kmeans.fit(X)
+        df['cluster'] = kmeans.labels_
+    else:
+        fit_X = list(zip(fit_df['lat'].tolist(), fit_df['long'].tolist()))
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+        kmeans.fit(fit_X)
+        labels = kmeans.fit_predict(X)
+        df['cluster'] = labels
+
+    dummies = pd.get_dummies(df['cluster'], prefix='cluster')
+    df = pd.concat([df, dummies], axis=1)
+    if drop_original_column:
+        df.drop(labels=['cluster'], inplace=True, axis=1)
     return df
