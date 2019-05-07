@@ -14,7 +14,6 @@ import seaborn as sns
 # Interpretation of coefficients H
 
 # power transform L
-# neighborhood price/score L
 # work on feature selection L
 # stepwise selection L
 # check for outliers L
@@ -158,11 +157,14 @@ def binarize_column(df, column, new_column_name=None, drop_original_column=True)
         df.drop(labels=[column], inplace=True, axis=1)
     return df
 
-def add_dummy_zipcodes(df, drop_zipcode_column=True):
+def add_dummy_zipcodes(df, all_zipcodes, drop_zipcode_column=True):
     dummy_zipcodes = pd.get_dummies(df["zipcode"])
     df = pd.concat([df, dummy_zipcodes], axis=1)
     if drop_zipcode_column:
         df.drop(labels=["zipcode"], axis=1, inplace=True)
+    for zipcode in all_zipcodes:
+        if not zipcode in df.columns.tolist():
+            df[zipcode] = np.zeros(len(df))
     return df
 
 # Data transformations 
@@ -512,24 +514,28 @@ def add_time_since_renovated_feature(df, date_of_purchase, year_renovated):
     df['time_since_renovated']= df[date_of_purchase]-df[year_renovated]
     return df
 
-def add_cluster_label_feature(df, n_clusters=10, fit_df=None, drop_original_column=True):
+def add_cluster_label_feature(df, n_clusters=10, drop_original_column=True, kmeans=None):
     from sklearn.cluster import KMeans
     X = list(zip(df['lat'].tolist(), df['long'].tolist()))
-    if type(fit_df) == None:
+    if kmeans == None:
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-        labels = kmeans.fit(X)
-        df['cluster'] = kmeans.labels_
-    else:
-        fit_X = list(zip(fit_df['lat'].tolist(), fit_df['long'].tolist()))
-        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-        kmeans.fit(fit_X)
-        labels = kmeans.fit_predict(X)
-        df['cluster'] = labels
+        kmeans.fit(X)
 
+    labels = kmeans.predict(X)    
+    df['cluster'] = labels
     dummies = pd.get_dummies(df['cluster'], prefix='cluster')
     df = pd.concat([df, dummies], axis=1)
     if drop_original_column:
         df.drop(labels=['cluster'], inplace=True, axis=1)
+    for cluster_i in range(n_clusters):
+        cluster_label = 'cluster_' + str(cluster_i)
+        if not cluster_label in df.columns.tolist():
+            df[cluster_label] = np.zeros(len(df))
+
+    return df, kmeans
+
+def add_price_per_sqft(df):
+    df['price_per_sqft'] = df['price'].divide(df['sqft_living'])
     return df
 
 def fill_na_with_zero(df, column):
