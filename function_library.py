@@ -390,8 +390,7 @@ def location_value_map(longitude, lattidude, price, precision):
 
     #will use nested loops to move through each house location and find the values of nearby homes according to the precision
     #precision is the percentage of homes to consider as "nearby"
-    print('the lattitude is length: '+str(len(lattidude)))
-    print('the longitude is length: '+str(len(longitude)))
+
     
     #initialize an empty list to fill with location values, the mean price of nearby homes
     location_value_list = [0]*len(longitude)
@@ -446,8 +445,43 @@ def location_value_map(longitude, lattidude, price, precision):
     return location_value_list
 
 
-longitude=[3, 7, 9, 5, 3, 8, 1,7]
-lattitude=[5, 9, 1, 3, 4, 8, 1, 3]
-price=[100, 200, 300, 700, 200, 550, 850, 950]
 
-location_value_map(longitude,lattitude, price, 50)
+#pass in a dataframe, a zipcode series, and a price series and a new dataframe will be returned with a column of zipcode rankings added
+def add_zipcode_ranking_feature(df, zipcode, price):
+    
+    #Set up a temporary database grouped by zipcode
+    by_zipcode = df.groupby(zipcode)[price].describe()
+    by_zipcode.head()
+    by_zipcode[zipcode]= by_zipcode.index
+    by_zipcode.sort_values('mean', ascending=False, inplace = True)
+
+    #loop through the grouped data base and create a zipcode rank list
+    zipcode_rank_list = [0]*len(by_zipcode.zipcode)
+    for index, zipcode in enumerate(by_zipcode.zipcode):
+        zipcode_rank = [0,0]
+        zipcode_rank[0]= zipcode
+        zipcode_rank[1]= index**2
+        zipcode_rank_list[index]=zipcode_rank
+
+    updated_df = df
+    updated_df['zipcode_rank'] = [0]*len(df.index)
+    
+    #Add the ranking values to a new column in the updated dataframe
+    rank_holding_list = [0]*len(updated_df.zipcode)
+    for index, zipcode in enumerate(updated_df.zipcode):
+        for rank in zipcode_rank_list:
+            if zipcode==rank[0]:
+                rank_holding_list[index]=rank[1]
+
+
+    updated_df['zipcode_rank']=rank_holding_list
+
+    return updated_df
+
+
+# df = pd.read_csv('https://raw.githubusercontent.com/learn-co-students/houston-ds-042219-mod1-project/master/kc_house_data.csv')
+# add_zipcode_ranking_feature(df, 'zipcode', 'price')
+
+def add_time_since_renovated_feature(df, date_of_purchase, year_renovated):
+    df['time_since_renovated']= df[date_of_purchase]-df[year_renovated]
+    return df
