@@ -75,7 +75,6 @@ def replace_with_year(df, column):
 # Drop columns
 def drop_columns(df, columns):
     df.drop(columns, inplace=True, axis=1)
-    print(df.columns)
     return df
 
 # Drop NA rows
@@ -413,18 +412,17 @@ def perform_cross_validation_sklearn(df, target, cv=5):
 # Results visualization
 def plot_predictions_vs_reality(df, target, predictions, log_transform_target=False, title=""):
     plt.style.use('ggplot')
-    #sns.set_style("darkgrid")
-    plt.figure()
     if log_transform_target:
         x = np.exp(df[target])
     else:
         x = df[target]
-    fig, ax = plt.subplots(figsize=(8,8))
-    f = sns.jointplot(ax=ax, x=x, y=predictions, kind="reg", joint_kws={'scatter_kws':{'alpha':0.1}, 'line_kws':{'color':'red'}})
-    [tick.set_rotation(90) for tick in ax.get_xticklabels()]
-    ax.set_xlabel("price", fontsize=20)
-    ax.set_ylabel("predicted price", fontsize=20)
-    ax.set_title(title, fontsize=20)
+    f = sns.jointplot(x=x, y=predictions, kind="reg", joint_kws={'scatter_kws':{'alpha':0.1}, 'line_kws':{'color':'red'}}, height=8)
+    [tick.set_rotation(90) for tick in f.ax_joint.get_xticklabels()]
+    f.ax_joint.set_xlabel("price", fontsize=20)
+    f.ax_joint.set_ylabel("predicted price", fontsize=20)
+    f.ax_joint.set_title(title, fontsize=20)
+    f.ax_marg_x.set_axis_off()
+    f.ax_marg_y.set_axis_off()
     
 
 
