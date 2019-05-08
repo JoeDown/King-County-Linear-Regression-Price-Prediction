@@ -569,13 +569,13 @@ def convert_float_to_datetime(df, column):
     for index, house in  enumerate(updated_df.column):
         holding_string_for_year = ''
         holding_string_together = ''
-        if update_df[column][index] != 0:
+        if updated_df[column][index] != 0:
             holding_string_for_year = str(updated_df[column][index])
             holding_string_together = holding_string_for_year + holding_string_for_date
             #print(df.column[index].join(' '))
             holding_list_for_series[index] = holding_string_together
         else: 
-            holding_string_for_year = str(updatedf.yr_built[index])
+            holding_string_for_year = str(updated_df.yr_built[index])
             holding_string_together = holding_string_for_year + holding_string_for_date
             #print(df.column[index].join(' '))
             holding_list_for_series[index] = holding_string_together
