@@ -411,9 +411,21 @@ def perform_cross_validation_sklearn(df, target, cv=5):
     return scores
 
 # Results visualization
-def plot_predictions_vs_reality(df, target, predictions):
+def plot_predictions_vs_reality(df, target, predictions, log_transform_target=False, title=""):
+    plt.style.use('ggplot')
+    #sns.set_style("darkgrid")
     plt.figure()
-    plt.scatter(df[target], predictions)
+    if log_transform_target:
+        x = np.exp(df[target])
+    else:
+        x = df[target]
+    fig, ax = plt.subplots(figsize=(8,8))
+    f = sns.jointplot(ax=ax, x=x, y=predictions, kind="reg", joint_kws={'scatter_kws':{'alpha':0.1}, 'line_kws':{'color':'red'}})
+    [tick.set_rotation(90) for tick in ax.get_xticklabels()]
+    ax.set_xlabel("price", fontsize=20)
+    ax.set_ylabel("predicted price", fontsize=20)
+    ax.set_title(title, fontsize=20)
+    
 
 
 def location_value_map(longitude, lattidude, price, precision):
