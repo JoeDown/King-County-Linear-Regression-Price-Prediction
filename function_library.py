@@ -411,9 +411,13 @@ def perform_cross_validation_sklearn(df, target, cv=5):
     return scores
 
 # Results visualization
-def plot_predictions_vs_reality(df, target, predictions):
+def plot_predictions_vs_reality(df, target, predictions, log_transform_target=False):
     plt.figure()
-    plt.scatter(df[target], predictions)
+    if log_transform_target:
+        x = np.exp(df[target])
+    else:
+        x = df[target]
+    sns.jointplot(x=x, y=predictions, kind="reg")
 
 
 def location_value_map(longitude, lattidude, price, precision):
