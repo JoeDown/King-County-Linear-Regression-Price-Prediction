@@ -1,4 +1,4 @@
-# mod1-project
+# King-County-Linear-Regression-Price-Prediction
 
 The goal of this project was to predict housing prices in King County, Washington based on historical pricing data.
 
